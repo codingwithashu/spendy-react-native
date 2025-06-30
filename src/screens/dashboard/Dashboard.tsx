@@ -10,13 +10,20 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
 import { fetchTransactions } from "../../lib/api/transactions";
-import { LineChart, Grid } from "react-native-svg-charts";
+import { Defs, LinearGradient, Stop } from "react-native-svg";
 import * as shape from "d3-shape";
 import { Transaction } from "../../types/types";
 import { getIcon, getIconBgColor } from "../../lib/helpers/categories";
+import { Grid, LineChart, XAxis } from "react-native-svg-charts";
+import * as scale from "d3-scale";
 
-const TABS = ["Week", "Month", "Year", "All"];
-
+const today = new Date();
+const year = today.getFullYear();
+const month = today.getMonth();
+const currentMonthName = new Date().toLocaleString("default", {
+  month: "long",
+});
+const daysInMonth = new Date(year, month + 1, 0).getDate();
 export default function Dashboard() {
   const [selectedTab, setSelectedTab] = useState("Month");
 
@@ -27,6 +34,15 @@ export default function Dashboard() {
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
+
+  const Gradient = () => (
+    <Defs key={"gradient"}>
+      <LinearGradient id={"gradient"} x1={"0"} y1={"0"} x2={"0"} y2={"1"}>
+        <Stop offset={"0%"} stopColor={"#3b82f6"} stopOpacity={0.5} />
+        <Stop offset={"100%"} stopColor={"#3b82f6"} stopOpacity={0.05} />
+      </LinearGradient>
+    </Defs>
+  );
 
   const income = useMemo(
     () =>
@@ -46,13 +62,20 @@ export default function Dashboard() {
 
   const balance = income - expense;
 
-  // Create mock data for the chart (daily expense totals for Feb 01–Feb 11)
-  const chartData = Array.from({ length: 11 }, (_, i) => {
+  const chartData = Array.from({ length: daysInMonth }, (_, i) => {
     const day = i + 1;
+
     const dayTransactions = transactions.filter(
-      (t: { date: string | number | Date }) =>
-        new Date(t.date).getDate() === day
+      (t: { date: string | number | Date }) => {
+        const tDate = new Date(t.date);
+        return (
+          tDate.getFullYear() === year &&
+          tDate.getMonth() === month &&
+          tDate.getDate() === day
+        );
+      }
     );
+
     return dayTransactions.reduce(
       (sum: any, t: { amount: any }) => sum + t.amount,
       0
@@ -106,41 +129,33 @@ export default function Dashboard() {
         </View>
 
         {/* Graph */}
-        <View className="mb-6">
+        <View className="mb-6 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
           <View className="flex-row justify-between items-center mb-2">
-            <Text className="text-gray-700 font-semibold">
-              Feb 01 - 11, 2023
+            <Text className="text-gray-700 font-semibold text-sm">
+              Spending Overview ({currentMonthName})
             </Text>
-            <Text className="text-red-500 text-xs font-medium">+₹5975.50</Text>
+            <Text className="text-red-500 text-xs font-medium">₹{income}</Text>
           </View>
+
           <LineChart
-            style={{ height: 180, borderRadius: 16 }}
+            style={{ height: 160 }}
             data={chartData}
+            svg={{ stroke: "url(#gradient)", strokeWidth: 3 }}
             curve={shape.curveNatural}
-            svg={{ stroke: "#3b82f6", strokeWidth: 3 }}
             contentInset={{ top: 20, bottom: 20 }}
           >
             <Grid />
+            <Gradient />
           </LineChart>
-          <View className="flex-row justify-around mt-4">
-            {TABS.map((tab) => (
-              <TouchableOpacity
-                key={tab}
-                onPress={() => setSelectedTab(tab)}
-                className={`px-4 py-1 rounded-full ${
-                  selectedTab === tab ? "bg-blue-500" : "bg-gray-200"
-                }`}
-              >
-                <Text
-                  className={`text-sm ${
-                    selectedTab === tab ? "text-white" : "text-gray-700"
-                  }`}
-                >
-                  {tab}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+
+          <XAxis
+            style={{ marginTop: 10 }}
+            data={chartData}
+            formatLabel={(value, index) => (index + 1).toString()} // Day of the month
+            numberOfTicks={6}
+            contentInset={{ left: 10, right: 10 }}
+            svg={{ fontSize: 10, fill: "#999" }}
+          />
         </View>
 
         {/* Cash Flow */}

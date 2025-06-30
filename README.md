@@ -4,6 +4,20 @@
 
 ---
 
+📱 Screenshots
+
+<div align="center">
+  <img src="./screenshots/1.png" alt="Login Screen" width="200"/>
+  <img src="./screenshots/2.png" alt="Signup Screen" width="200"/>
+  <img src="./screenshots/3.png" alt="Dashboard" width="200"/>
+  <img src="./screenshots/4.png" alt="Add Transaction" width="200"/>
+</div>
+<div align="center">
+  <img src="./screenshots/5.png" alt="Categories" width="200"/>
+  <img src="./screenshots/6.png" alt="Profile" width="200"/>
+  <img src="./screenshots/7.png" alt="Transactions List" width="200"/>
+</div>
+
 ## ✨ Features
 
 - 🔐 **Authentication**
@@ -59,6 +73,11 @@ yarn
 
 npx expo start
 
+## 🧩 Project Structure
+
+bash
+Copy
+Edit
 spendy-app/
 ├── assets/ # App assets (icons, images, splash, etc.)
 ├── components/ # Reusable UI components
